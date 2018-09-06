@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 REPLACE_TOKEN = ' [-{0}//{2}-]{{+{1}//{2}+}} '
 INSERT_TOKEN = ' {{+{0}//{1}+}} '
 DELETE_TOKEN = ' [-{0}//{1}-] '
+WORDLIMIT_TAG = '{+WORD　LIMIT//IS+}'
 
 edit_re = re.compile('<change>(((?!<change>).)*?)</change>')
 
@@ -44,7 +45,7 @@ def change_to_diff(change_token, ignore_type=[]):
         return ' '
 
 
-def convert2wdiff(text, ignore_type=[]):
+def convert_to_wdiff(text, ignore_type=[]):
     while edit_re.search(text):
         for match in edit_re.finditer(text):
             change_token = match.group(0)
@@ -56,12 +57,20 @@ def convert2wdiff(text, ignore_type=[]):
     return ' '.join(token for token in text.split(' ') if token)
 
 
+def wordLimit_strip(text):
+    position = text.find(WORDLIMIT_TAG)
+    if position < 0:
+        return text
+    return text[:position]
+
+
 def main():
     ignore_type = set(sys.argv[1:])
 
     for text in sys.stdin:
         text = restore_space_escape(text.strip())
-        print(convert2wdiff(text, ignore_type))
+        diff_text = convert_to_wdiff(text, ignore_type)
+        print(wordLimit_strip(diff_text))
 
 
 if __name__ == '__main__':
