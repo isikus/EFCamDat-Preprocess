@@ -1,0 +1,25 @@
+XC change from x to y
+AG agreement
+AR article
+AS add space
+CO combine sentences
+C capitalization
+D delete
+EX expression of idiom
+HL highlight
+IS insert
+MW missing word
+NS new sentence
+NSW no such word
+PH phraseology
+PL plural
+PO possessive
+PR preposition
+PS part of speech
+PU punctuation
+RS remove space
+SI singular
+SP spelling
+VT verb tense
+WC word choice
+WO word order
