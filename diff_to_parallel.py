@@ -38,14 +38,16 @@ def parallel_process(fpath, report_crs=True):
     with open(fpath, "r", encoding="utf-8", errors="replace") as infile:
         text = infile.read()
     namebase = os.path.splitext(fpath)[0]
+    root = namebase[:len(namebase)-namebase[::-1].find("/")]
+    fname = namebase[len(namebase)-namebase[::-1].find("/"):]
     
     src, trg, crs = diff2before_after(text, report_crs)
     
-    with open(namebase+"_src.txt", "w", encoding="utf-8") as outfile:
+    with open(root+"/src/"+fname+".txt", "w", encoding="utf-8") as outfile:
         outfile.write(src)
-    with open(namebase+"_trg.txt", "w", encoding="utf-8") as outfile:
+    with open(root+"/trg/"+fname+".txt", "w", encoding="utf-8") as outfile:
         outfile.write(trg)
-    with open(namebase+"_crs.txt", "w", encoding="utf-8") as outfile:
+    with open(root+"/crs/"+fname+".txt", "w", encoding="utf-8") as outfile:
         outfile.write(str(crs))
     
     N += 1
@@ -68,5 +70,8 @@ def run(texts_dir):
     global N
     N = 0
     files = [os.path.abspath(texts_dir+"/"+file) for file in os.listdir(texts_dir)]
+    os.makedirs(texts_dir+"/src", exist_ok=True)
+    os.makedirs(texts_dir+"/trg", exist_ok=True)
+    os.makedirs(texts_dir+"/crs", exist_ok=True)
     print("Processing", str(len(files)), "files")
     results = ThreadPool(16).imap_unordered(parallel_process, files)
