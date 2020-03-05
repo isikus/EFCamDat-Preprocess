@@ -3,9 +3,9 @@ import re
 import sys
 from bs4 import BeautifulSoup
 
-REPLACE_TOKEN = ' [-{0}//{2}-]{{+{1}//{2}+}} '
-INSERT_TOKEN = ' {{+{0}//{1}+}} '
-DELETE_TOKEN = ' [-{0}//{1}-] '
+REPLACE_TOKEN = '[-{0}//{2}-]{{+{1}//{2}+}}'
+INSERT_TOKEN = '{{+{0}//{1}+}}'
+DELETE_TOKEN = '[-{0}//{1}-]'
 
 edit_re = re.compile('<change>(((?!<change>).)*?)</change>')
 
@@ -23,8 +23,6 @@ def parse_change(content):
     corrected = soup.select_one('tag correct').text
     error_type = soup.select_one('tag symbol').text
 
-    original = original.strip().replace(' ', '\u3000')
-    corrected = corrected.strip().replace(' ', '\u3000')
     error_type = error_type.replace(' and ', ',')
     return original, corrected, error_type
 

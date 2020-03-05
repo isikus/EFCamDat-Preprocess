@@ -5,69 +5,31 @@ import re
 
 from nltk.tokenize import word_tokenize as tokenize
 
-edit_re = re.compile('\[\-(((?!\[-).)*?)\-\]|\{\+(((?!\{\+).)*?)\+\}')
+
+def diff2before_after(text, report_crs):
+    crs = None
+    if report_crs:
+        crs = len(re.findall(r'\{\+.*?//.*?\}', text)) + len(re.findall(r'\[\-.*?//.*?\]', text))
+    src = re.sub(r'\{\+(.*?)//.*?\}', '', re.sub(r'\[\-(.*?)//.*?\]', r'\1', text))
+    trg = re.sub(r'\{\+(.*?)//.*?\}', r'\1', re.sub(r'\[\-(.*?)//.*?\]', '', text))
+    return src, trg, crs
 
 
-def parse_edit_token(token):
-    delete = insert = ''
-    if token.startswith('{+'):
-        insert = token[2:-2].rsplit('//', 1)[0]
-    elif token.startswith('[-'):
-        if token.endswith('+}'):
-            delete, insert = token[2:-2].rsplit('-]{+', 1)
-            delete = delete.rsplit('//', 1)[0]
-            insert = insert.rsplit('//', 1)[0]
-        else:
-            delete = token[2:-2].rsplit('//', 1)[0]
-    return delete, insert
-
-
-def flattern_edit_token(text, to_before=True):
-    while edit_re.search(text):
-        for match in edit_re.finditer(text):
-            edit_token = match.group(0)
-            insert, delete = edit_token_to_parallel(edit_token)
-            text = text.replace(edit_token, delete if to_before else insert)
-    return text
-
-
-def edit_token_to_parallel(token):
-    delete, insert = parse_edit_token(token)
-    delete = flattern_edit_token(delete)
-    insert = flattern_edit_token(insert, to_before=False)
-    return insert, delete
-
-
-def diff2before_after(text):
-    before, after = [], []
-    for token in text.split(' '):
-        # restore fullwidth space to halfwidth
-        token = token.replace('\u3000', ' ')
-        if token.startswith('{+') or token.startswith('[-'):
-            insert, delete = edit_token_to_parallel(token)
-        else:
-            insert = delete = token
-
-        if delete:
-            before.append(delete)
-        if insert:
-            after.append(insert)
-
-    return ' '.join(before), ' '.join(after)
-
-
-def main(ignore_len=3):
+def main(ignore_len=3, report_crs=False):
     for line in fileinput.input():
-        src, trg = diff2before_after(line.strip())
+        src, trg, crs = diff2before_after(line.strip(), report_crs)
 
         before = tokenize(src)
         after = tokenize(trg)
         if len(before) > ignore_len and len(after) > ignore_len:
-            print(' '.join(before), file=sys.stderr)
-            print(' '.join(after))
+            print(src, file=sys.stderr)
+            print(trg)
+            if report_crs:
+                with open("crs.txt", "w", encoding="utf-8") as outfile:
+                    outfile.write(str(crs))
 
 
 if __name__ == '__main__':
-    main()
+    main(report_crs=True)
 
 # cat diff.txt|python diff_to_parallel.py 1>trg.txt 2>src.txt
