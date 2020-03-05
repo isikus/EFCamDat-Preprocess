@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import fileinput
+import os
 import sys
 import re
 
+from multiprocessing.pool import ThreadPool
+from multiprocessing import cpu_count
 from nltk.tokenize import word_tokenize as tokenize
 
 
@@ -29,7 +32,41 @@ def main(ignore_len=3, report_crs=False):
                     outfile.write(str(crs))
 
 
+def parallel_process(fpath, report_crs=True):
+    global N
+    
+    with open(fpath, "r", encoding="utf-8", errors="replace") as infile:
+        text = infile.read()
+    namebase = os.path.splitext(fpath)[0]
+    
+    src, trg, crs = diff2before_after(text, report_crs)
+    
+    with open(namebase+"_src.txt", "w", encoding="utf-8") as outfile:
+        outfile.write(src)
+    with open(namebase+"_trg.txt", "w", encoding="utf-8") as outfile:
+        outfile.write(trg)
+    with open(namebase+"_crs.txt", "w", encoding="utf-8") as outfile:
+        outfile.write(str(crs))
+    
+    N += 1
+    if not(N % 5000):
+        print(str(N), "files processed")
+
+
+# single process strategy (for smaller collections)
+# call from bash
+# cat diff.txt|python diff_to_parallel.py 1>trg.txt 2>src.txt
 if __name__ == '__main__':
     main(report_crs=True)
 
-# cat diff.txt|python diff_to_parallel.py 1>trg.txt 2>src.txt
+
+# parallel process strategy (for large collections)
+# call from python
+# from diff_to_parallel import run
+# run(texts_dir)   # where texts_dir is a path
+def run(texts_dir):
+    global N
+    N = 0
+    files = [os.path.abspath(texts_dir+"/"+file) for file in os.listdir(texts_dir)]
+    print("Processing", str(len(files)), "files")
+    results = ThreadPool(16).imap_unordered(parallel_process, files)
