@@ -43,11 +43,11 @@ def parallel_process(fpath, report_crs=True):
     
     src, trg, crs = diff2before_after(text, report_crs)
     
-    with open(root+"/src/"+fname+".txt", "w", encoding="utf-8") as outfile:
+    with open(root+"src/"+fname+".txt", "w", encoding="utf-8") as outfile:
         outfile.write(src)
-    with open(root+"/trg/"+fname+".txt", "w", encoding="utf-8") as outfile:
+    with open(root+"trg/"+fname+".txt", "w", encoding="utf-8") as outfile:
         outfile.write(trg)
-    with open(root+"/crs/"+fname+".txt", "w", encoding="utf-8") as outfile:
+    with open(root+"crs/"+fname+".txt", "w", encoding="utf-8") as outfile:
         outfile.write(str(crs))
     
     N += 1
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 def run(texts_dir):
     global N
     N = 0
-    files = [os.path.abspath(texts_dir+"/"+file) for file in os.listdir(texts_dir)]
+    files = [os.path.abspath(texts_dir+"/"+file) for file in os.listdir(texts_dir) if os.path.isfile(os.path.abspath(texts_dir+"/"+file))]
     os.makedirs(texts_dir+"/src", exist_ok=True)
     os.makedirs(texts_dir+"/trg", exist_ok=True)
     os.makedirs(texts_dir+"/crs", exist_ok=True)
