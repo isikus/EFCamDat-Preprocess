@@ -19,6 +19,6 @@ def iter_writings(iterator):
 
 
 if __name__ == '__main__':
-    for texts in iter_writings(fileinput.input()):
+    for texts in iter_writings(fileinput.input(openhook=fileinput.hook_encoded("utf-8", "replace"))):
         for text in texts:
             print(text)
